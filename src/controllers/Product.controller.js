@@ -69,3 +69,35 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     }, "User's products fetched successfully")
   );
 });
+
+export const removeProductByName = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const productName = req.body.productName;
+    console.log("Product Name: ", productName);
+    // Validation
+    if (!productName || typeof productName !== "string") {
+      throw new ApiError(400, "Invalid or missing product name.")
+      
+    }
+
+    // Find and delete the product owned by the user
+    const deletedProduct = await Product.findOneAndDelete({
+      owner: userId,
+      productName: { $regex: new RegExp(`^${productName}$`, "i") }, // case-insensitive match
+    });
+
+    if (!deletedProduct) {
+      throw new ApiError(404, "Product not found or not authorized to delete." )
+    }
+    return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200, deletedProduct, "Product removed successfully."
+      )
+    )
+  } catch (error) {
+    throw new ApiError(500, "Server error. Please try again later.")
+  }
+};
