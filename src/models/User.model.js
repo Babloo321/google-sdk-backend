@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     type:String,
     required:false
   },
+  pictureId:{
+    type:String,
+    required:false
+  },
   refreshToken: String,
 }, { timestamps: true });
 

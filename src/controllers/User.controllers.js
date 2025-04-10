@@ -3,6 +3,7 @@ import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import User from '../models/User.model.js';
 import jwt from 'jsonwebtoken';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 const generateAccessAndRefereshTokens = async userId => {
   try {
     let user = await User.findById(userId);
@@ -23,7 +24,6 @@ const generateAccessAndRefereshTokens = async userId => {
 
 export const registerUser = asyncHandler (async (req,res) => {
   const { userName, password, email } = req.body;
-
   if ([userName, password].some(field => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
@@ -39,10 +39,23 @@ export const registerUser = asyncHandler (async (req,res) => {
     throw new ApiError(409, "User with this username or email already exists");
   }
 
+  const pictureLocalFile = req.file?.path;
+
+console.log("picture LocalFile: ",pictureLocalFile)
+  if (!pictureLocalFile) {
+    throw new ApiError(400, "Picture image is required");
+  }
+  const picture = await uploadOnCloudinary(pictureLocalFile,)
+  if(!picture){
+    throw new ApiError(500, "Error on Cloudinary plateform");
+  }
+  const picturePublicId = picture.public_id;
   const user = await User.create({
     userName,
     email,
     password,
+    picture:picture.url,
+    pictureId:picturePublicId,
     isGoogleAuth: false,
   });
 
